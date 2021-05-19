@@ -108,30 +108,25 @@ function createMatrix(w, h) {
     return matrix;
 }
 
-function drawMatrix(matrix, offset) {
+function drawMatrix(matrix, offset, w, h) {
     for (var row = 0 ; row < matrix.length; row += 1) {
         for( var col = 0; col < matrix[row].length; col += 1 ) {
             var value = matrix[row][col];
             if (value !== 0) {
-                context.fillStyle = colors[value];
+                context.fillStyle = value !== -1 ? colors[value] : '#000';
                 context.fillRect(col + offset.x,
                                  row + offset.y,
-                                 1, 1);
+                                 w, h);
             }
         }
     }
 }
 
-function fillCanvas(color) {
-    context.fillStyle = color;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-}
-
 function draw() {
-    fillCanvas('#000');
+    drawMatrix([[-1]], {x: 0, y: 0}, canvas.width, canvas.height);
 
-    drawMatrix(arena, {x: 0, y: 0});
-    drawMatrix(player.matrix, player.pos);
+    drawMatrix(arena, {x: 0, y: 0}, 1, 1);
+    drawMatrix(player.matrix, player.pos, 1, 1);
 }
 
 function merge(arena, player) {
