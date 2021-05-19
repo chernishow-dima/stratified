@@ -51,22 +51,38 @@ function createPiece(type)
     }
 }
 
-function arenaSweep() {
-    let rowCount = 1;
-    outer: for (let y = arena.length -1; y > 0; --y) {
-        for (let x = 0; x < arena[y].length; ++x) {
-            if (arena[y][x] === 0) {
-                continue outer;
-            }
+function isRowFilled(rowArray) {
+    for (let x = 0; x < rowArray.length; ++x) {
+        if (rowArray[x] === 0) {
+            return false;
         }
+    }
+    return true;
+}
 
-        const row = arena.splice(y, 1)[0].fill(0);
+function getFilledRowsNumbers(array) {
+    let result = [];
+    for (let y = array.length -1; y > 0; --y) {
+        if (isRowFilled(array[y])) {
+            result.push(y);
+        }
+    }
+    return result;
+}
+function deleteRowsNumbers(rowNumsArray) {
+    let rowCount = 1;
+    for(var i = 0; i < rowNumsArray.length; i += 1) {
+        const row = arena.splice(rowNumsArray[i], 1)[0].fill(0);
         arena.unshift(row);
-        ++y;
 
         player.score += rowCount * 10;
         rowCount += 2;
     }
+} 
+
+function arenaSweep() {
+    let rowsToBeDeleted = getFilledRowsNumbers(arena);
+    deleteRowsNumbers(rowsToBeDeleted);
 }
 
 function collide(arena, player) {
@@ -86,41 +102,47 @@ function collide(arena, player) {
 
 function createMatrix(w, h) {
     const matrix = [];
-    while (h--) {
+    for (var i = h; h > 0; h -= 1) {
         matrix.push(new Array(w).fill(0));
     }
     return matrix;
 }
 
 function drawMatrix(matrix, offset) {
-    matrix.forEach((row, y) => {
-        row.forEach((value, x) => {
+    for (var row = 0 ; row < matrix.length; row += 1) {
+        for( var col = 0; col < matrix[row].length; col += 1 ) {
+            var value = matrix[row][col];
             if (value !== 0) {
                 context.fillStyle = colors[value];
-                context.fillRect(x + offset.x,
-                                 y + offset.y,
+                context.fillRect(col + offset.x,
+                                 row + offset.y,
                                  1, 1);
             }
-        });
-    });
+        }
+    }
+}
+
+function fillCanvas(color) {
+    context.fillStyle = color;
+    context.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function draw() {
-    context.fillStyle = '#000';
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    fillCanvas('#000');
 
     drawMatrix(arena, {x: 0, y: 0});
     drawMatrix(player.matrix, player.pos);
 }
 
 function merge(arena, player) {
-    player.matrix.forEach((row, y) => {
-        row.forEach((value, x) => {
+    for (var y = 0; y < player.matrix.length; y += 1) {
+        for (var x = 0; x < player.matrix[y].length; x += 1) {
+            var value = player.matrix[y][x];
             if (value !== 0) {
                 arena[y + player.pos.y][x + player.pos.x] = value;
             }
-        });
-    });
+        }
+    }
 }
 
 function rotate(matrix, dir) {
@@ -137,7 +159,9 @@ function rotate(matrix, dir) {
     }
 
     if (dir > 0) {
-        matrix.forEach(row => row.reverse());
+        for (var i = 0; i < matrix.length; i += 1) {
+            matrix[i].reverse();
+        }
     } else {
         matrix.reverse();
     }
@@ -169,11 +193,17 @@ function playerReset() {
     player.pos.x = (arena[0].length / 2 | 0) -
                    (player.matrix[0].length / 2 | 0);
     if (collide(arena, player)) {
-        arena.forEach(row => row.fill(0));
+        arena = createMatrix(12, 20);
         player.score = 0;
         updateScore();
     }
 }
+
+function fillArrayWith(array, a) {
+    for (var i = 0; i < array.length; i += 1) {
+        array[i].fill(a);
+    }
+} 
 
 function playerRotate(dir) {
     const pos = player.pos.x;
